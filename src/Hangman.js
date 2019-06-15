@@ -50,7 +50,7 @@ class Hangman extends Component {
         gameWin: gameWin
       }),
       () => {
-        console.log(this.state.nWrong, this.props.maxWrong);
+        // console.log(this.state.nWrong, this.props.maxWrong);
 
         if (this.state.nWrong >= this.props.maxWrong) {
           this.setState({ ...this.state, gameEnd: true });
