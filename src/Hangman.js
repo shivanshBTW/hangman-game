@@ -8,6 +8,7 @@ import img4 from './assets/images/4.jpg';
 import img5 from './assets/images/5.jpg';
 import img6 from './assets/images/6.jpg';
 import { randomWord } from './words';
+import AlphaButttons from './AlphaButtons';
 
 class Hangman extends Component {
   /** by default, allow 6 guesses and use provided gallows images. */
@@ -19,10 +20,10 @@ class Hangman extends Component {
   constructor(props) {
     super(props);
     let randW = randomWord();
-    this.state = { nWrong: 0, guessed: new Set(), answer: randW, gameEnd: false };
+    this.state = { nWrong: 0, guessed: new Set(), answer: randW, gameEnd: false, gameWin: false };
     this.handleGuess = this.handleGuess.bind(this);
     this.handleReset = this.handleReset.bind(this);
-    console.log(randW);
+    // console.log(randW);
   }
 
   /** guessedWord: show current-state of word:
@@ -39,39 +40,59 @@ class Hangman extends Component {
   handleGuess(evt) {
     let ltr = evt.target.value;
     let gameEndTemp = false;
-    console.log(this.state.nWrong, this.props.maxWrong);
-    if (this.state.nWrong + 1 >= this.props.maxWrong) {
-      gameEndTemp = true;
-    }
-    this.setState(st => ({
-      ...this.state,
-      guessed: st.guessed.add(ltr),
-      nWrong: st.nWrong + (st.answer.includes(ltr) ? 0 : 1),
-      gameEnd: gameEndTemp
-    }));
+    let gameWin = false;
+    this.setState(
+      st => ({
+        ...this.state,
+        guessed: st.guessed.add(ltr),
+        nWrong: st.nWrong + (st.answer.includes(ltr) ? 0 : 1),
+        gameEnd: gameEndTemp,
+        gameWin: gameWin
+      }),
+      () => {
+        console.log(this.state.nWrong, this.props.maxWrong);
+
+        if (this.state.nWrong >= this.props.maxWrong) {
+          this.setState({ ...this.state, gameEnd: true });
+        }
+        if (this.state.answer === this.guessedWord().join('')) {
+          this.setState({ ...this.state, gameWin: true });
+        }
+      }
+    );
   }
 
   /** generateButtons: return array of letter buttons to render */
   generateButtons() {
-    var buttons = 'abcdefghijklmnopqrstuvwxyz'.split('').map(ltr => (
-      <button
-        value={ltr}
-        key={ltr}
-        onClick={this.handleGuess}
-        disabled={this.state.guessed.has(ltr)}
-      >
-        {ltr}
-      </button>
-    ));
-
+    var buttons = (
+      <AlphaButttons
+        handleGuess={this.handleGuess}
+        guessed={this.state.guessed}
+        inputAlphas="abcdefghijklmnopqrstuvwxyz"
+      />
+    );
     var gameOver = `Game is over. The correct word was ${this.state.answer}`;
+    var gameWin = 'Congratulations!!! You guessed the correct word';
 
-    return !this.state.gameEnd ? buttons : gameOver;
+    if (this.state.gameEnd) {
+      return gameOver;
+    } else if (this.state.gameWin) {
+      return gameWin;
+    } else {
+      return buttons;
+    }
   }
   handleReset(e) {
     let randW = randomWord();
-    this.setState({ ...this.state, nWrong: 0, guessed: new Set(), answer: randW, gameEnd: false });
-    console.log(randW);
+    this.setState({
+      ...this.state,
+      nWrong: 0,
+      guessed: new Set(),
+      answer: randW,
+      gameEnd: false,
+      gameWin: false
+    });
+    // console.log(randW);
   }
   /** render: render game */
   render() {
@@ -87,10 +108,10 @@ class Hangman extends Component {
             this.props.maxWrong
           } wrong guesses`}</p>
           <p className="Hangman-word">{this.guessedWord()}</p>
-          <p className="Hangman-btns">{this.generateButtons()}</p>
+          <div className="Hangman-btns">{this.generateButtons()}</div>
         </div>
         <div>
-          <button class="rstBtn" onClick={this.handleReset}>
+          <button className="rstBtn" onClick={this.handleReset}>
             Reset Game !!!
           </button>
         </div>
